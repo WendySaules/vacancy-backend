@@ -381,3 +381,56 @@ app.put('/status', (req, res) => {
         console.error(error);  
     }
 });
+
+//update Agente
+app.put('/newagente', (req, res) => {
+
+    try {
+        let idmembresia = req.body.idmembresia;
+        let idagente = req.body.idagente;
+        let idagenteanterior = req.body.idagenteanterior;
+
+        const scriptupdate = "CALL update_agente('tarjeta', '" + idmembresia + "', '" + idagente + "' , '" + idagenteanterior + "')";
+
+        mysqlConnection.query(scriptupdate, (err, rows, fields) => {
+            if (!err) {
+
+                let response = {
+                    status:null,
+                    //access_token: rows.email //JWT
+                    message:null,
+                    result:null
+
+                };
+
+                 if (rows[0][0].response =="404"){
+
+                     response = {
+                        status:404,
+                        message:"agente no actualizado",
+                        result:null
+                    };
+                    console.log(response);
+
+                } else if(rows[0][0].response=="200"){
+                    
+                        response = {
+                            status:200,
+                            message:"agente actualizado correctamente",
+                            result:rows
+                        };
+                        console.log(response);
+                }
+               
+               console.log(rows[0][0], "response");
+               console.log(response);
+                res.send(response);
+
+            } else  
+            console.log(err);
+        });
+
+    }catch (error) {
+        console.error(error);  
+    }
+});
