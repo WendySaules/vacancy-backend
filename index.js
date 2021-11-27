@@ -434,3 +434,82 @@ app.put('/newagente', (req, res) => {
         console.error(error);  
     }
 });
+
+
+//get pagos
+app.post('/membresiaspagos', (req, res) => {
+    console.log(req.body)
+    try {
+        let type_query = "sinCadena"
+        let start_date = req.body.startDate;
+        let due_date = req.body.endDate;
+        let lista_status = req.body.status.length > 0 ?  req.body.status : "1,2,3,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,23,24,25";
+        let cadena = req.body.text;
+        let mostrar = req.body.sizePerPage;
+        let page = req.body.page;
+        let count = 0;
+        
+        if (cadena.length > 0)
+            type_query = "conCadena"
+       
+        //console.log(start_date,due_date,lista_status,cadena,type_query);
+        
+        const scriptMembresiasPagosCount = `CALL get_membresias_pagos_count('${type_query}', '${start_date}', '${due_date}', '${lista_status}', '${cadena}' )`;
+        mysqlConnection.query(scriptMembresiasPagosCount, (err, rows, fields) => {
+        if (!err) {
+            if (rows[0][0].response == "200")
+                count = rows[0][0].count;
+        }
+         else console.log(err); 
+        });
+
+        let offsetIni = (mostrar * page) - mostrar;
+        let offsetFin = mostrar;
+
+        const scriptMembresiasPagos = `CALL get_membresias_pagos('${type_query}', '${start_date}', '${due_date}', '${lista_status}', '${cadena}', ${offsetIni}, ${offsetFin} )`;
+
+        // console.log(scriptmembresiasBystatus);
+       
+            mysqlConnection.query(scriptMembresiasPagos, (err, rows, fields) => {
+            
+                if (!err) {
+        
+                        let response = {
+                            status:null,
+                            //access_token: rows.email //JWT
+                            message:null,
+                            result:null
+        
+                        };
+        
+                        if (rows[0][0].response != "200"){
+        
+                             response = {
+                                status:404,
+                                message:"No se encontraron resultados",
+                                result:null
+                            };
+                        } else if(rows[0][0].response=="200"){
+                                 response = {
+                                    status:200,
+                                    message:"",
+                                    result: {
+                                        count,
+                                        items: rows,
+                                        page,
+                                        mostrar
+                                    }
+                                }; 
+                        }
+    
+                       console.log(rows, "rows");
+                       console.log(response, "response");
+                       res.send(response);
+    
+        
+                } else 
+                   console.log(err); 
+            });
+        
+        } catch (error) {console.error(error); }
+});
