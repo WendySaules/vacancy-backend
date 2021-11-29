@@ -451,6 +451,9 @@ app.post('/membresiaspagos', (req, res) => {
         
         if (cadena.length > 0)
             type_query = "conCadena"
+
+        let offsetIni = (mostrar * page) - mostrar;
+        let offsetFin = mostrar;    
        
         //console.log(start_date,due_date,lista_status,cadena,type_query);
         
@@ -458,13 +461,12 @@ app.post('/membresiaspagos', (req, res) => {
         mysqlConnection.query(scriptMembresiasPagosCount, (err, rows, fields) => {
         if (!err) {
             if (rows[0][0].response == "200")
-                count = rows[0][0].count;
+                count = rows[0][0].count;   
         }
          else console.log(err); 
         });
 
-        let offsetIni = (mostrar * page) - mostrar;
-        let offsetFin = mostrar;
+       
 
         const scriptMembresiasPagos = `CALL get_membresias_pagos('${type_query}', '${start_date}', '${due_date}', '${lista_status}', '${cadena}', ${offsetIni}, ${offsetFin} )`;
 
